@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 """
-This script fetches TODO list progress for an employee from the
-JSPNPlaceholder API.
-It displays the number of completed and total tasks along with titles
-of completed tasks.
+This script exports to-do-list information for a given employee
+ID to a CSV file.
 """
 
+import csv
 import requests
 import sys
 
@@ -27,28 +26,36 @@ def fetch_employee_data(employee_id):
 
     return user_data, todos_data
 
-
-def display_todo_progress(employee_id):
+def export_to_csv(employee_id):
     """
-    Displays the progress of the TODO list for a given employee ID.
+    Exports the TODO list of the given employee to a CSV file.
     Args:
         employee_id (int): The ID of the employee.
     """
     user_data, todos_data = fetch_employee_data(employee_id)
+    username = user_data.get("username")
 
-    employee_name = user_data.get('name')
-    total_tasks = len(todos_data)
-    done_tasks = [task for task in todos_data if task.get('completed')]
-    done_tasks_count = len(done_tasks)
+    # Create the filename
+    filename = f"{employee_id}.csv"
 
-    print(f"Employee {employee_name} is done with tasks({done_tasks_count}/{total_tasks}):")
+    # Open the CSV file for writing
+    with open(filename, mode='w', newline='') as file:
+        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+        # Write rows to CSV file
+        for todo in todos_data:
+            row = [
+                    str(employee_id),
+                    username,
+                    str(todo.get("completed")),
+                    todo.get("title")
+            ]
+            writer.writerow(row)
 
-    for task in done_tasks:
-        print(f"\t {task.get('title')}")
+    print(f"Data has been exported to {filename}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python3 0-gather_data_from_an_API.py <employee_id>")
+        print("Usage: python3 1-export_to_CSV.py <employee_id>")
         sys.exit(1)
 
     try:
@@ -57,4 +64,4 @@ if __name__ == "__main__":
         print("The employee ID must be an integer.")
         sys.exit(1)
 
-    display_todo_progress(employee_id)
+    export_to_csv(employee_id)
